@@ -11,6 +11,10 @@ public class PlayerController : MonoBehaviour
     public Transform groundCheck;
     public float groundCheckRadius = 0.1f;
 
+    [Header("Death")]
+    [Tooltip("If Rimuru's Y falls below this, he dies.")]
+    public float fallDeathY = -1000f;
+
     [Header("Attack")]
     public GameObject waterCutterPrefab;
     public float projectileSpeed = 10f;
@@ -40,6 +44,21 @@ public class PlayerController : MonoBehaviour
         HandleInput();
         HandleFlip();
         UpdateAnimations();
+        CheckFallDeath();
+    }
+
+    void CheckFallDeath()
+    {
+        if (transform.position.y < fallDeathY)
+            stats.Kill();
+    }
+
+    public void Respawn(Vector3 position)
+    {
+        transform.position    = position;
+        rb.linearVelocity     = Vector2.zero;
+        rb.angularVelocity    = 0f;
+        stats.Revive();
     }
 
     void FixedUpdate()

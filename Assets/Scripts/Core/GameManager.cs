@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -33,6 +34,20 @@ public class GameManager : MonoBehaviour
     public string mainMenuScene = "MainMenu";
     public string gameScene     = "Level_01";
 
+    // ─── Respawn ──────────────────────────────────────────────────────────────
+
+    [Header("Respawn")]
+    [Tooltip("Where the player respawns. Replace with a checkpoint lookup later.")]
+    public Vector3 respawnPoint = Vector3.zero;
+
+    /// <summary>Called by checkpoints when the player passes through them.</summary>
+    public void SetRespawnPoint(Vector3 point) => respawnPoint = point;
+
+    // ─── Events ───────────────────────────────────────────────────────────────
+
+    /// <summary>Fired when the player dies. UI/menus subscribe to this.</summary>
+    public event Action OnGameOverEvent;
+
     // ─── Pause ────────────────────────────────────────────────────────────────
 
     void Update()
@@ -64,10 +79,22 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayerDeath()
     {
+        if (State == GameState.GameOver) return;
         State = GameState.GameOver;
         Time.timeScale = 0f;
         Debug.Log("Game Over — Rimuru was defeated.");
-        // Future: show Game Over UI, then call RestartLevel() or LoadMainMenu()
+        OnGameOverEvent?.Invoke();
+    }
+
+    /// <summary>Soft-respawn: teleport the player to respawnPoint and resume play.</summary>
+    public void RespawnPlayer()
+    {
+        Time.timeScale = 1f;
+        State = GameState.Playing;
+
+        var player = FindAnyObjectByType<PlayerController>();
+        if (player != null) player.Respawn(respawnPoint);
+        else Debug.LogWarning("RespawnPlayer: no PlayerController found in scene.");
     }
 
     // ─── Scene Loading ────────────────────────────────────────────────────────

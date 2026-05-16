@@ -51,6 +51,28 @@ public class PlayerStats : MonoBehaviour
         onHPChanged?.Invoke(CurrentHP, maxHP);
     }
 
+    public void Kill()
+    {
+        if (CurrentHP <= 0) return;
+        CurrentHP = 0;
+        onHPChanged?.Invoke(CurrentHP, maxHP);
+        Die();
+    }
+
+    public void Revive()
+    {
+        CurrentHP   = maxHP;
+        CurrentMana = maxMana;
+        onHPChanged?.Invoke(CurrentHP, maxHP);
+        onManaChanged?.Invoke(CurrentMana, maxMana);
+
+        if (regenCoroutine != null)
+        {
+            StopCoroutine(regenCoroutine);
+            regenCoroutine = null;
+        }
+    }
+
     void Die()
     {
         Debug.Log("Rimuru has fallen!");
@@ -96,11 +118,18 @@ public class PlayerStats : MonoBehaviour
 
     // ─── Debug ────────────────────────────────────────────────────────────────
 
+    GUIStyle debugStyle;
+
     void OnGUI()
     {
 #if UNITY_EDITOR
-        GUI.Label(new Rect(10, 10, 200, 20), $"HP:   {CurrentHP} / {maxHP}");
-        GUI.Label(new Rect(10, 30, 200, 20), $"Mana: {CurrentMana} / {maxMana}");
+        if (debugStyle == null)
+            debugStyle = new GUIStyle(GUI.skin.label) { fontSize = 36 };
+
+        Vector3 p = transform.position;
+        GUI.Label(new Rect(10, 10,  600, 50), $"HP:   {CurrentHP} / {maxHP}",                  debugStyle);
+        GUI.Label(new Rect(10, 60,  600, 50), $"Mana: {CurrentMana} / {maxMana}",              debugStyle);
+        GUI.Label(new Rect(10, 110, 600, 50), $"Pos:  ({p.x:F2}, {p.y:F2})",                   debugStyle);
 #endif
     }
 }
