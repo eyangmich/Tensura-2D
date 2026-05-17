@@ -20,7 +20,21 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        SceneManager.sceneLoaded += HandleSceneLoaded;
     }
+
+    void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            SceneManager.sceneLoaded -= HandleSceneLoaded;
+        }
+    }
+
+    // ─── Events ───────────────────────────────────────────────────────────────
+
+    public static event System.Action OnGameOver;
+    public static event System.Action OnRespawn;
 
     // ─── State ────────────────────────────────────────────────────────────────
 
@@ -32,6 +46,15 @@ public class GameManager : MonoBehaviour
     [Header("Scene Names")]
     public string mainMenuScene = "MainMenu";
     public string gameScene     = "Level_01";
+
+    // ─── Respawn ──────────────────────────────────────────────────────────────
+
+    // Where Rimuru spawns on restart. Defaults to origin; will later be driven
+    // by a checkpoint array — e.g. respawnPoint = checkpoints[currentCheckpoint].
+    [Header("Respawn")]
+    public Vector2 respawnPoint = Vector2.zero;
+
+    public void SetRespawnPoint(Vector2 point) => respawnPoint = point;
 
     // ─── Pause ────────────────────────────────────────────────────────────────
 
@@ -67,7 +90,23 @@ public class GameManager : MonoBehaviour
         State = GameState.GameOver;
         Time.timeScale = 0f;
         Debug.Log("Game Over — Rimuru was defeated.");
-        // Future: show Game Over UI, then call RestartLevel() or LoadMainMenu()
+        OnGameOver?.Invoke();
+    }
+
+    // ─── Scene Load Hook ──────────────────────────────────────────────────────
+
+    void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (scene.name != gameScene) return;
+
+        var player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            player.transform.position = respawnPoint;
+            var rb = player.GetComponent<Rigidbody2D>();
+            if (rb != null) rb.linearVelocity = Vector2.zero;
+            OnRespawn?.Invoke();
+        }
     }
 
     // ─── Scene Loading ────────────────────────────────────────────────────────

@@ -51,6 +51,14 @@ public class PlayerStats : MonoBehaviour
         onHPChanged?.Invoke(CurrentHP, maxHP);
     }
 
+    public void Kill()
+    {
+        if (CurrentHP <= 0) return;
+        CurrentHP = 0;
+        onHPChanged?.Invoke(CurrentHP, maxHP);
+        Die();
+    }
+
     void Die()
     {
         Debug.Log("Rimuru has fallen!");

@@ -18,6 +18,10 @@ public class PlayerController : MonoBehaviour
     public float rimururWidth = 0.5f; // adjust to match your sprite size in Unity units
     public float attackRange => rimururWidth * 4f;
 
+    [Header("Fall Detection")]
+    [Tooltip("If Rimuru's Y drops below this, he dies.")]
+    public float fallThreshold = -1000f;
+
     // Components
     private Rigidbody2D rb;
     private Animator anim;
@@ -45,7 +49,16 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         CheckGround();
+        CheckFall();
         Move();
+    }
+
+    void CheckFall()
+    {
+        if (transform.position.y < fallThreshold)
+        {
+            stats.Kill();
+        }
     }
 
     // ─── Input ────────────────────────────────────────────────────────────────
